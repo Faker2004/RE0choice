@@ -1,6 +1,5 @@
-# OKX 合约成交额暴增/爆减雷达 · RE0choice
+· RE0choice
 
-基于 OKX 全市场 USDT 永续合约 **1 小时 K 线**，计算成交额相对 24 小时均量的偏离率（Ratio），支持爆增榜 / 爆减榜双榜排序。后端 FastAPI + SQLite 增量缓存，前端 React + Vite 黑金主题。
 
 ## 快速启动
 
