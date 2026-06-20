@@ -1,0 +1,50 @@
+name: OKX Cloud Kline Sync
+
+on:
+  schedule:
+    # 每小时第 5 分钟（UTC），给 OKX 1h K 线收盘留缓冲
+    - cron: "5 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: okx-cloud-data
+  cancel-in-progress: false
+
+jobs:
+  update-kline-snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: cloud-data/requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r cloud-data/requirements.txt
+
+      - name: Run OKX incremental updater
+        run: python cloud-data/update_okx.py
+
+      - name: Commit and push data.json
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add cloud-data/data.json
+          if git diff --staged --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+          git commit -m "chore(cloud): update OKX klines $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push
